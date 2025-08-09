@@ -7,9 +7,9 @@ import com.nameless.social.api.exception.CustomException;
 import com.nameless.social.api.exception.ErrorCode;
 import com.nameless.social.api.model.GroupInfoModel;
 import com.nameless.social.api.model.GroupModel;
-import com.nameless.social.api.model.QuestModel;
 import com.nameless.social.api.repository.ClubRepository;
 import com.nameless.social.api.repository.GroupRepository;
+import com.nameless.social.api.repository.QuestRepository;
 import com.nameless.social.api.repository.user.UserRepository;
 import com.nameless.social.core.entity.*;
 import lombok.RequiredArgsConstructor;
@@ -18,12 +18,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class GroupService {
+	private final QuestRepository questRepository;
 	private final ClubRepository clubRepository;
 	private final UserRepository userRepository;
 	private final GroupRepository groupRepository;
@@ -55,13 +57,20 @@ public class GroupService {
 		long memberCount = 1L;
 
 		// TODO Quest를 DB에서 조회한 뒤 전달해야 함.
-		List<QuestModel> questModels = null;
+		List<Quest> quests = Optional.of(questRepository.findAll())
+				.filter(list -> !list.isEmpty())
+				.orElseThrow(() -> new CustomException(ErrorCode.QUEST_NOT_FOUND));
+//		List<List<Quest>> quests = clubs.stream()
+//				.map(club -> questRepository.findAllByClubId(club.getId()))
+//				.findAny()
+//				.orElseThrow()
+//				.toList();
 
 		return GroupInfoModel.of(
 				group,
 				clubs,
 				memberCount,
-				questModels,
+				quests,
 				parseTags(group.getTag())
 		);
 	}
@@ -75,13 +84,15 @@ public class GroupService {
 					long memberCount = 1L;
 
 					// TODO Quest를 DB에서 조회한 뒤 전달해야 함.
-					List<QuestModel> questModels = null;
+					List<Quest> quests = Optional.of(questRepository.findAll())
+							.filter(list -> !list.isEmpty())
+							.orElseThrow(() -> new CustomException(ErrorCode.QUEST_NOT_FOUND));
 
 					return GroupInfoModel.of(
 							group,
 							club,
 							memberCount,
-							questModels,
+							quests,
 							parseTags(group.getTag())
 					);
 				})
